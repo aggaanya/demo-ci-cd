@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "aanyaagg/employee-api:v1"
+    }
+
     stages {
 
         stage('Checkout') {
@@ -23,13 +27,25 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t aanyaagg/employee-api:v1 .'
+                bat "docker build -t %IMAGE_NAME% ."
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub',
+                    usernameVariable: 'aanyaagg',
+                    passwordVariable: 'aanya'
+                )]) {
+                    bat 'echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin'
+                }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                bat 'docker push aanyaagg/employee-api:v1'
+                bat "docker push %IMAGE_NAME%"
             }
         }
 
@@ -38,9 +54,23 @@ pipeline {
                 bat '''
                 docker stop employee-container 2>nul
                 docker rm employee-container 2>nul
-                docker run -d -p 8081:8080 --name employee-container aanyaagg/employee-api:v1
+                docker run -d -p 8081:8080 --name employee-container %IMAGE_NAME%
                 '''
             }
+        }
+    }
+
+    post {
+        always {
+            bat 'docker logout'
+        }
+
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed!'
         }
     }
 }
