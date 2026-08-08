@@ -1,9 +1,12 @@
-pipeline {
-    agent any
+FROM eclipse-temurin:17-jre
 
-    environment {
-        IMAGE_NAME = "aanyaagg/employee-api:v1"
-    }
+WORKDIR /app
+
+COPY target/*.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
 
     stages {
 
