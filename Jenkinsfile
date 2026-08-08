@@ -23,7 +23,13 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t employee-api .'
+                bat 'docker build -t aanyaagg/employee-api:v1 .'
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                bat 'docker push aanyaagg/employee-api:v1'
             }
         }
 
@@ -32,7 +38,7 @@ pipeline {
                 bat '''
                 docker stop employee-container 2>nul
                 docker rm employee-container 2>nul
-                docker run -d -p 8081:8080 --name employee-container employee-api
+                docker run -d -p 8081:8080 --name employee-container aanyaagg/employee-api:v1
                 '''
             }
         }
