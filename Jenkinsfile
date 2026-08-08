@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -10,7 +11,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                bat 'mvn clean compile'
+                bat 'mvn clean package'
             }
         }
 
@@ -19,5 +20,58 @@ pipeline {
                 bat 'mvn test'
             }
         }
+
+        stage('Build Docker Image') {
+            steps {
+                bat 'docker build -t employee-api .'
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                bat '''
+                docker rm -f employee-container || exit 0
+                docker run -d -p 8081:8080 --name employee-container employee-api
+                '''
+            }
+        }
     }
-}
+}pipeline {
+     agent any
+
+     stages {
+
+         stage('Checkout') {
+             steps {
+                 checkout scm
+             }
+         }
+
+         stage('Build') {
+             steps {
+                 bat 'mvn clean package'
+             }
+         }
+
+         stage('Test') {
+             steps {
+                 bat 'mvn test'
+             }
+         }
+
+         stage('Build Docker Image') {
+             steps {
+                 bat 'docker build -t employee-api .'
+             }
+         }
+
+         stage('Run Docker Container') {
+             steps {
+                 bat '''
+                 docker rm -f employee-container || exit 0
+                 docker run -d -p 8081:8080 --name employee-container employee-api
+                 '''
+             }
+         }
+     }
+ }
